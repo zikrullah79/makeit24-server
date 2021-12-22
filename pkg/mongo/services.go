@@ -50,14 +50,14 @@ func InitDB() error {
 	mongoCollection = db.Collection("score")
 	return nil
 }
-func GetAllScores() ([]bson.M, error) {
+func GetAllScores() ([]model.Score, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 	c, err := mongoCollection.Find(ctx, bson.D{})
 	if err != nil {
 		return nil, err
 	}
-	var t []bson.M
+	var t []model.Score
 	if err := c.All(ctx, &t); err != nil {
 		fmt.Println(err)
 	}
@@ -74,7 +74,7 @@ func GetOneById(id string) (*model.Score, error) {
 	}
 	return s, nil
 }
-func InsertScores(score *model.Score) (interface{}, error) {
+func InsertScore(score *model.Score) (interface{}, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 	res, err := mongoCollection.InsertOne(ctx, score)

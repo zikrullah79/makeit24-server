@@ -1,0 +1,22 @@
+syntax = "proto3";
+option go_package ="./pkg/ScoreServices";
+package ScoreServices;
+service ScoreServices{
+    rpc GetAllScore (GetAllScoreRequest) returns (stream Score){}
+    rpc AddNewScore (AddNewScoreRequest) returns (ScoreResponse){}
+}
+
+message GetAllScoreRequest{}
+
+message Score{
+    string name = 1;
+    string point = 2;
+}
+
+message AddNewScoreRequest{
+    string name = 1;
+    float score = 2;
+}
+message ScoreResponse{
+    string message = 1;
+}

@@ -8,9 +8,8 @@ type Score struct {
 	Name  string             `bson:"name" json:"name"`
 }
 
-func InitScore(ID primitive.ObjectID, Point float32, Name string) *Score {
+func InitScore(Point float32, Name string) *Score {
 	return &Score{
-		ID:    ID,
 		Point: Point,
 		Name:  Name,
 	}
