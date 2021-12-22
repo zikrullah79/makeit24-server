@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -10,6 +11,7 @@ import (
 	pb "zikrullah79/makeit24-server/pkg/ScoreServices"
 	"zikrullah79/makeit24-server/pkg/mongo"
 	"zikrullah79/makeit24-server/pkg/mongo/model"
+	"zikrullah79/makeit24-server/pkg/worker"
 
 	"github.com/joho/godotenv"
 	"google.golang.org/grpc"
@@ -21,11 +23,18 @@ type server struct {
 }
 
 func (s *server) GetAllScore(in *pb.GetAllScoreRequest, stream pb.ScoreServices_GetAllScoreServer) error {
-	d, err := mongo.GetAllScores()
-	if err != nil {
-		log.Fatal(err)
+	res := make(chan interface{})
+	req := &worker.WorkRequest{WorkType: 1, Result: res}
+
+	worker.WorkQueue <- *req
+
+	result := <-req.Result
+	close(req.Result)
+	if req.Error != nil {
+		return req.Error
 	}
-	for _, v := range d {
+
+	for _, v := range result.([]model.Score) {
 		if err := stream.Send(&pb.Score{Name: v.Name, Point: fmt.Sprintf("%v", v.Point)}); err != nil {
 			return err
 		}
@@ -34,11 +43,21 @@ func (s *server) GetAllScore(in *pb.GetAllScoreRequest, stream pb.ScoreServices_
 }
 
 func (s *server) AddNewScore(ctx context.Context, in *pb.AddNewScoreRequest) (*pb.ScoreResponse, error) {
-	_, err := mongo.InsertScore(model.InitScore(in.Score, in.Name))
-	if err != nil {
-		log.Fatal(err)
+	if in.Name == "" {
+		return nil, errors.New("BAD REQUEST")
 	}
-	return &pb.ScoreResponse{Message: "Succesfully Add Scores"}, nil
+	res := make(chan interface{})
+	req := &worker.WorkRequest{WorkType: 2, Data: model.InitScore(in.Score, in.Name), Result: res}
+
+	worker.WorkQueue <- *req
+
+	result := <-req.Result
+	close(req.Result)
+	if req.Error != nil {
+		return nil, req.Error
+	}
+
+	return &pb.ScoreResponse{Message: fmt.Sprintf("Succesfully Add Scores, id : %v", result)}, nil
 }
 
 var (
@@ -56,6 +75,7 @@ func main() {
 	if err != nil {
 		fmt.Print(err)
 	}
+	worker.StartDivider(*NWorker)
 	grpcServer := grpc.NewServer()
 	err = mongo.InitDB()
 	if err != nil {

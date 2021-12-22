@@ -25,7 +25,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Please Input Number in Work Type", http.StatusBadRequest)
 		return
 	}
-	work := WorkRequest{rType, nil}
+	work := WorkRequest{rType, nil, nil, nil}
 
 	WorkQueue <- work
 
