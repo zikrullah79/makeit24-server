@@ -1,6 +1,7 @@
 package worker
 
 import (
+	"fmt"
 	"math/rand"
 )
 
@@ -17,6 +18,7 @@ func newWorker() *Worker {
 func StartDivider(nWorker int) {
 	WorkerQueue = make(chan chan WorkRequest)
 	for i := 0; i < nWorker; i++ {
+		fmt.Printf("Init new worker %v \n", i)
 		newWorker().Start()
 	}
 

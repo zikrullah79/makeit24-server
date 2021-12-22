@@ -11,6 +11,7 @@ import (
 	pb "zikrullah79/makeit24-server/pkg/ScoreServices"
 	"zikrullah79/makeit24-server/pkg/mongo"
 	"zikrullah79/makeit24-server/pkg/mongo/model"
+	"zikrullah79/makeit24-server/pkg/variable"
 	"zikrullah79/makeit24-server/pkg/worker"
 
 	"github.com/joho/godotenv"
@@ -24,7 +25,7 @@ type server struct {
 
 func (s *server) GetAllScore(in *pb.GetAllScoreRequest, stream pb.ScoreServices_GetAllScoreServer) error {
 	res := make(chan interface{})
-	req := &worker.WorkRequest{WorkType: 1, Result: res}
+	req := &worker.WorkRequest{WorkType: variable.AllScores, Result: res}
 
 	worker.WorkQueue <- *req
 
@@ -35,7 +36,7 @@ func (s *server) GetAllScore(in *pb.GetAllScoreRequest, stream pb.ScoreServices_
 	}
 
 	for _, v := range result.([]model.Score) {
-		if err := stream.Send(&pb.Score{Name: v.Name, Point: fmt.Sprintf("%v", v.Point)}); err != nil {
+		if err := stream.Send(&pb.Score{Name: v.Name, Point: v.Point}); err != nil {
 			return err
 		}
 	}
@@ -47,7 +48,7 @@ func (s *server) AddNewScore(ctx context.Context, in *pb.AddNewScoreRequest) (*p
 		return nil, errors.New("BAD REQUEST")
 	}
 	res := make(chan interface{})
-	req := &worker.WorkRequest{WorkType: 2, Data: model.InitScore(in.Score, in.Name), Result: res}
+	req := &worker.WorkRequest{WorkType: variable.PostScore, Data: model.InitScore(in.Score, in.Name), Result: res}
 
 	worker.WorkQueue <- *req
 

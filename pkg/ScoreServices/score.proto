@@ -1,5 +1,5 @@
 syntax = "proto3";
-option go_package ="./pkg/ScoreServices";
+option go_package ="./generated";
 package ScoreServices;
 service ScoreServices{
     rpc GetAllScore (GetAllScoreRequest) returns (stream Score){}
@@ -10,7 +10,7 @@ message GetAllScoreRequest{}
 
 message Score{
     string name = 1;
-    string point = 2;
+    float point = 2;
 }
 
 message AddNewScoreRequest{

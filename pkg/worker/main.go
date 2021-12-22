@@ -5,6 +5,7 @@ import (
 	"sync"
 	"zikrullah79/makeit24-server/pkg/mongo"
 	"zikrullah79/makeit24-server/pkg/mongo/model"
+	"zikrullah79/makeit24-server/pkg/variable"
 )
 
 type Worker struct {
@@ -29,15 +30,14 @@ func (w *Worker) Start() {
 			select {
 			case work := <-w.WorkQueue:
 				w.lock.Lock()
-				if work.WorkType == 1 {
+				if work.WorkType == variable.AllScores {
 					d, err := mongo.GetAllScores()
 					if err != nil {
 						work.Error = err
 						continue
 					}
 					work.Result <- d
-				} else if work.WorkType == 2 {
-					// in := work.Data.(model.Score)
+				} else if work.WorkType == variable.PostScore {
 					d, err := mongo.InsertScore(work.Data.(*model.Score))
 					if err != nil {
 						work.Error = err
